@@ -14,6 +14,8 @@ from django.contrib.contenttypes.models import ContentType
 from wagtail.wagtailcore.models import Page
 from wagtail.wagtailcore.fields import StreamField
 
+from ... import serializer
+
 
 class Command(BaseCommand):
     """
@@ -105,7 +107,7 @@ class Command(BaseCommand):
                 field = page._meta.get_field(key)
 
                 if isinstance(field, StreamField):
-                    value = json.dumps(value)
+                    value = json.dumps(value, cls=serializer.JSONEncoder)
                 else:
                     # Assume we know how to serialise it
                     pass
