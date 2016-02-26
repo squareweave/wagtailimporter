@@ -1,0 +1,17 @@
+language: python
+python:
+ - '3.5'
+
+script:
+    echo "Done"
+
+deploy:
+  provider: pypi
+  user: danni
+  password:
+    secure: YRO3bs/tIE8ECyUhZ43Kq7CEm6QWY4bRT/T3mgmfXsGdMKucXBAH/DdbdM7bvF7oW+PvBkNNMZktZOe8KhCGbHRP5LIlMEkLnxPr6IsL+FoAjmw35EvCFOEiap5iRJCqHaLRIvOHA2D+3G3hJz9pitqVODH4qaEdk+0NRcBOnQi4JnLeMfxlVS6cVt7MPgDeqjiUOiiIFHl6P7rK9K1dY1YXdAIj08ljENkTFs/bc1ae0twzg6U/PYsuaMYdvPZuJUS805xvzjmmTAKeb0VVer+7TuBM48Inia8IV4uo4jgelYrdT9K/nU8zbDDjjDp5XFBDFVqvZHu1LjOY4sWN38cH6vdWsKR0mgtFS1DyLCWdHfuLQN3TTTah9SReYwLd2W6US3y9P+ctBf4ni3K+bQv86IYVrGW5okH9BHxfQZlxoWtpuN/yQzCT8p71aTeGBy5+rRmdvhBU8T30PStLf4EXo57TUXvSrP97xCpxx6KUeS1WxCsTKmgRLBg4mzU7i0hupI58lfFf/8+7nxUfKMeBygdivDQlq79KLNMGHdEGcV1S/8oz4zH4DzFARwKYWwti2EzbBupuOsN6fwYeWO7BAMtAw5XhUd0ddehCy9lqoQRgotb521o/wYRBAGJluIqeE2Pe4pWJYUxqL94HDK/pSjyu6GNYP7X8eMlPJvQ=
+  on:
+    tags: true
+    all_branches: true
+    python: 3.5
+    condition: '"$TRAVIS_TAG" = "$(python setup.py --version)"'
