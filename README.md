@@ -62,7 +62,8 @@ to create references, e.g. `!page` takes arguments that are used to reference
 a page (by path `url`).
 
 Builtin reference types:
-    - `!page`
+
+* `!page`
 
 You can also create your own for your models:
 
