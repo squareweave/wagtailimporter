@@ -6,6 +6,8 @@ Adds the ability to Wagtail to import/update pages from a Yaml file.
 Installing
 ----------
 
+::
+
     INSTALLED_APPS = (
         ...
         'wagtailimporter',
@@ -15,12 +17,16 @@ Installing
 Usage
 -----
 
+::
+
     ./manage.py import_pages <page.yml> [<page.yml> [<page.yml> ... ] ...]
 
 File format
 -----------
 
 Create a Yaml file/s for your pages.
+
+::
 
     url: /site
     type: home.homepage
@@ -63,9 +69,11 @@ a page (by path `url`).
 
 Builtin reference types:
 
-* `!page`
+* ``!page``
 
 You can also create your own for your models:
+
+::
 
     import wagtailimporter.serializer
 

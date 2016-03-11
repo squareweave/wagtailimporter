@@ -4,7 +4,7 @@ setuptools configuration for wagtailimporter.
 
 from setuptools import setup, find_packages
 
-with open('README.md') as readme, \
+with open('README.rst') as readme, \
      open('requirements.txt') as requirements:
     setup(
         name="wagtailimporter",
