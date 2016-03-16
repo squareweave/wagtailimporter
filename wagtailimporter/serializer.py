@@ -1,13 +1,20 @@
 """
 Objects for YAML serializer/deserializer
 """
-
+import os
 import json
+import logging
 from pathlib import PurePosixPath
 
 import yaml
+from unidecode import unidecode
 
+from django.core.files import File
+from django.db import transaction
 from wagtail.wagtailcore.models import Page as WagtailPage
+from wagtail.wagtailimages.models import Image as WagtailImage
+
+LOGGER = logging.getLogger(__name__)
 
 
 class JSONSerializable(object):
@@ -95,3 +102,57 @@ class Page(JSONSerializable, yaml.YAMLObject):
         page = WagtailPage.objects.only('id').get(url_path=str(url) + '/')
 
         return page.id
+
+
+class Image(FieldStorable, yaml.YAMLObject):
+    """
+    A reference to an image
+    """
+
+    yaml_tag = '!image'
+    yaml_loader = yaml.SafeLoader
+
+    file = None  # expected parameter
+
+    @property
+    def db_filename(self):
+        """
+        Filename that will be stored into the DB.
+
+        This code is taken from Wagtail. We can't call into the Wagtail code
+        because it will create unique filenames.
+        """
+
+
+        folder_name = 'original_images'
+        filename = ('images/%s' % self.file).replace('/', '')
+        filename = "".join((i if ord(i) < 128 else '_')
+                           for i in unidecode(filename))
+
+        while len(os.path.join(folder_name, filename)) >= 95:
+            prefix, dot, extension = filename.rpartition('.')
+            filename = prefix[:-1] + dot + extension
+
+        return os.path.join(folder_name, filename)
+
+    @transaction.atomic
+    def __to_value__(self):
+        try:
+            obj = WagtailImage.objects.get(file=self.db_filename)
+
+        except WagtailImage.DoesNotExist:
+            print("Creating file %s..." % self.db_filename)
+            with open('images/%s' % self.file, 'rb') as file_:
+                file_ = File(file_)
+                obj = WagtailImage(file=file_)
+                # Need to save while the file is open
+                obj.save()  # pylint:disable=no-member
+
+        # copy the fields
+        for field in obj._meta.get_fields():
+            if field.name == 'file':
+                continue
+            elif hasattr(self, field.name):
+                setattr(obj, field.name, getattr(self, field.name))
+
+        obj.save()

@@ -71,6 +71,14 @@ Builtin reference types:
 
 * ``!page``
 
+  Takes a `url` parameter to another page (must be already present).
+
+* ``!image``
+
+  Takes a `file` parameter to an image (either in `MEDIA/original/images`.
+
+  Can also accept other `Image` related parameters such as `title`.
+
 You can also create your own for your models:
 
 ::

@@ -1,8 +1,9 @@
 """
 Import pages into Wagtail
 """
+import os
 import json
-from pathlib import PurePosixPath
+from pathlib import PurePosixPath, Path
 
 import yaml
 
@@ -31,7 +32,13 @@ class Command(BaseCommand):
             with open(filename) as file_:
                 docs = yaml.safe_load_all(file_)
                 self.stdout.write("Reading %s" % filename)
-                self.import_documents(docs)
+
+                cwd = Path.cwd()
+                try:
+                    os.chdir(str(Path(filename).parent))
+                    self.import_documents(docs)
+                finally:
+                    os.chdir(str(cwd))
 
     @transaction.atomic
     def import_documents(self, docs):
