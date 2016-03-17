@@ -60,6 +60,12 @@ Create a Yaml file/s for your pages.
     tagline: |
         <div>We are <em>super great!</em></div>
 
+    ---
+
+    !custom_snippet
+        slug: my-snippet
+        title: My Snippet
+
 Foreign Object References
 -------------------------
 
@@ -85,10 +91,32 @@ You can also create your own for your models:
 
     import wagtailimporter.serializer
 
-    class Toplevel(wagtailimporter.serializer.GetOrCreateForeignObject
+    class Toplevel(wagtailimporter.serializer.GetOrCreateForeignObject):
         """A reference to a toplevel"""
         yaml_tag = '!toplevel'
         model = TopLevel
+
+Importing snippets
+------------------
+
+Foreign object references can also be used to create and import snippets.
+
+::
+
+    !custom_snippet
+        slug: my-snippet
+        title: My Snippet
+
+::
+
+    import wagtailimporter.serializer
+
+    class MySnippet(wagtailimporter.serializer.GetOrCreateForeignObject):
+        """Creates a snippet"""
+        yaml_tag = '!my-snippet'
+        model = MySnippet
+
+        lookup_keys = ('slug',)
 
 License
 -------
