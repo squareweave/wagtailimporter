@@ -12,6 +12,7 @@ from unidecode import unidecode
 from django.core.files import File
 from django.db import transaction
 from wagtail.wagtailcore.models import Page as WagtailPage
+from wagtail.wagtailcore.fields import StreamField
 from wagtail.wagtailimages.models import Image as WagtailImage
 
 LOGGER = logging.getLogger(__name__)
@@ -91,7 +92,15 @@ class GetForeignObject(FieldStorable, yaml.YAMLObject):
         # update the object with any remaining keys
         for field in self.model._meta.get_fields():
             if hasattr(self, field.name):
-                setattr(obj, field.name, getattr(self, field.name))
+                value = getattr(self, field.name)
+
+                if isinstance(field, StreamField):
+                    value = json.dumps(value, cls=JSONEncoder)
+
+                elif isinstance(value, FieldStorable):
+                    value = value.__to_value__()  # pylint:disable=no-member
+
+                setattr(obj, field.name, value)
 
         return obj
 
