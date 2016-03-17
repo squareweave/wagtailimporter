@@ -57,19 +57,43 @@ class GetForeignObject(FieldStorable, yaml.YAMLObject):
         """Model for this reference."""
         raise NotImplementedError()
 
+    @property
+    def lookup_keys(self):
+        """
+        Lookup keys.
+
+        Default implementation is all model fields that are defined in
+        the Yaml block.
+        """
+
+        return (field.name for field in self.model._meta.get_fields())
+
     def lookup(self):
         """
         Generate the lookup
         """
 
         return {
-            field.name: getattr(self, field.name)
-            for field in self.model._meta.get_fields()
-            if hasattr(self, field.name)
+            field: getattr(self, field)
+            for field in self.lookup_keys
+            if hasattr(self, field)
         }
 
-    def __to_value__(self):
+    def get_object(self):
+        """
+        Get the object from the database.
+        """
         return self.model.objects.get(**self.lookup())
+
+    def __to_value__(self):
+        obj = self.get_object()
+
+        # update the object with any remaining keys
+        for field in self.model._meta.get_fields():
+            if hasattr(self, field.name):
+                setattr(obj, field.name, getattr(self, field.name))
+
+        return obj
 
 
 # pylint:disable=abstract-method
@@ -78,7 +102,7 @@ class GetOrCreateForeignObject(GetForeignObject):
     Get or create a foreign key reference for the provided parameters
     """
 
-    def __to_value__(self):
+    def get_object(self):
         obj, _ = self.model.objects.get_or_create(**self.lookup())
         return obj
 # pylint:enable=abstract-method
@@ -122,7 +146,6 @@ class Image(FieldStorable, yaml.YAMLObject):
         This code is taken from Wagtail. We can't call into the Wagtail code
         because it will create unique filenames.
         """
-
 
         folder_name = 'original_images'
         filename = ('images/%s' % self.file).replace('/', '')

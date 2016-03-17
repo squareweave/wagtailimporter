@@ -46,9 +46,20 @@ class Command(BaseCommand):
 
         for doc in docs:
             try:
-                self.import_page(doc)
+                if isinstance(doc, serializer.GetForeignObject):
+                    self.import_snippet(doc)
+                else:
+                    self.import_page(doc)
             except CommandError as exc:
                 self.stderr.write("Error importing page: %s" % exc)
+
+    @transaction.atomic
+    def import_snippet(self, data):
+        """Import a snippet (which is a GetForeignObject)."""
+
+        obj = data.__to_value__()
+        print("Importing snippet %s" % obj)
+        obj.save()
 
     @transaction.atomic
     def import_page(self, data):
