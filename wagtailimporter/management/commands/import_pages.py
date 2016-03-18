@@ -65,9 +65,7 @@ class Command(BaseCommand):
     def import_page(self, data):
         """Import a single wagtail page."""
         model = self.get_page_model_class(data)
-        page = self.find_page(model, data)
-        self.import_data(page, data)
-        page.save()
+        self.find_page(model, data)
 
     def get_page_model_class(self, data):
         """
@@ -91,7 +89,10 @@ class Command(BaseCommand):
 
     def find_page(self, model, data):
         """
-        Find a page by its URL.
+        Find a page by its URL and import its data.
+
+        Data importing has to be done here because often the page can't
+        be saved until the data is imported (i.e. null fields)
         """
         try:
             url = PurePosixPath(data.pop('url'))
@@ -103,6 +104,8 @@ class Command(BaseCommand):
 
         try:
             page = model.objects.get(url_path=str(url) + '/')
+            self.import_data(page, data)
+            page.save()
             self.stdout.write("Updating existing page %s" % url)
         except model.DoesNotExist:
             try:
@@ -112,6 +115,7 @@ class Command(BaseCommand):
                 raise CommandError("Parent of %s doesn't exist" % url)
 
             page = model(slug=url.name)
+            self.import_data(page, data)
             parent.add_child(instance=page)
             self.stdout.write("Creating new page %s" % url)
 
