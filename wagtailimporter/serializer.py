@@ -188,3 +188,5 @@ class Image(FieldStorable, yaml.YAMLObject):
                 setattr(obj, field.name, getattr(self, field.name))
 
         obj.save()
+
+        return obj
