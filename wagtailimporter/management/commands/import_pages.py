@@ -138,7 +138,6 @@ class Command(BaseCommand):
                 # This might be a property, just try and set it anyway
                 pass
 
-            if isinstance(value, serializer.FieldStorable):
-                value = value.__to_value__()  # pylint:disable=no-member
+            value = serializer.FieldStorable.to_objects(value)
 
             setattr(page, key, value)

@@ -33,6 +33,26 @@ class FieldStorable(object):
         """Value to store in a Django model."""
         raise NotImplementedError()
 
+    @classmethod
+    def to_objects(cls, value):
+        """Convert FieldStorables to objects."""
+        if isinstance(value, cls):
+            value = value.__to_value__()  # pylint:disable=no-member
+
+        elif isinstance(value, list):
+            value = [cls.to_objects(elem) for elem in value]
+
+        elif isinstance(value, dict):
+            value = {
+                key: cls.to_objects(elem)
+                for key, elem in value.items()
+            }
+
+        else:
+            pass
+
+        return value
+
 
 class JSONEncoder(json.JSONEncoder):
     """
@@ -96,9 +116,8 @@ class GetForeignObject(FieldStorable, yaml.YAMLObject):
 
                 if isinstance(field, StreamField):
                     value = json.dumps(value, cls=JSONEncoder)
-
-                elif isinstance(value, FieldStorable):
-                    value = value.__to_value__()  # pylint:disable=no-member
+                else:
+                    value = FieldStorable.to_objects(value)
 
                 setattr(obj, field.name, value)
 
