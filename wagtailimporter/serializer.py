@@ -137,7 +137,7 @@ class Page(JSONSerializable, yaml.YAMLObject):
         return page.id
 
 
-class Image(FieldStorable, yaml.YAMLObject):
+class Image(FieldStorable, JSONSerializable, yaml.YAMLObject):
     """
     A reference to an image
     """
@@ -190,3 +190,6 @@ class Image(FieldStorable, yaml.YAMLObject):
         obj.save()
 
         return obj
+
+    def __to_json__(self):
+        return self.__to_value__().id
