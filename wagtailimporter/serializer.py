@@ -95,7 +95,7 @@ class GetForeignObject(FieldStorable, yaml.YAMLObject):
         """
 
         return {
-            field: getattr(self, field)
+            field: FieldStorable.to_objects(getattr(self, field))
             for field in self.lookup_keys
             if hasattr(self, field)
         }
