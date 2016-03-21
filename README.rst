@@ -96,6 +96,55 @@ You can also create your own for your models:
         yaml_tag = '!toplevel'
         model = TopLevel
 
+The following base classes are provided:
+
+* `GetForeignObject`
+
+  Calls `get` on an object defined by `lookup_keys`.
+
+* `GetOrCreateForeignObject` (inherits from `GetForeignObject`)
+
+  Calls `get_or_create` as above.
+
+* `GetOrCreateClusterableForeignObject` (inherits from `GetForeignObject`)
+
+  Calls `get` or creates a new, unsaved object
+  (useful for `ClusterableModel` related classes).
+
+  For example:
+
+  ::
+
+      url: /my/page
+      type: some.type
+      related_pages:
+          - !relatedpage
+                page: !page
+                    url: /my/other/page
+
+  ::
+
+      class RelatedPage(Orderable):
+          """A related page."""
+
+          parent = ParentalKey(SiteSettings, related_name='related_pages')
+          page = models.ForeignKey('wagtailcore.Page',
+                                   null=True, blank=True,
+                                   on_delete=models.CASCADE,
+                                   related_name='+')
+
+          panels = [
+              PageChooserPanel('page'),
+          ]
+
+
+      class RelatedPageTag(GetOrCreateClusterableForeignObject):
+
+          model = RelatedPage
+          yaml_tag = '!relatedpage'
+          lookup_keys = ('page',)
+
+
 Importing snippets
 ------------------
 
