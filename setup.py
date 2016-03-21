@@ -8,7 +8,7 @@ with open('README.rst') as readme, \
      open('requirements.txt') as requirements:
     setup(
         name="wagtailimporter",
-        version="0.0.8",
+        version="0.0.9",
         description="Wagtail module to load pages from Yaml",
         long_description=readme.read(),
         url='https://github.com/squareweave/wagtailimporter',
