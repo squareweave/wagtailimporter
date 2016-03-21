@@ -133,6 +133,19 @@ class GetOrCreateForeignObject(GetForeignObject):
     def get_object(self):
         obj, _ = self.model.objects.get_or_create(**self.lookup())
         return obj
+
+
+class GetOrCreateClusterableForeignObject(GetForeignObject):
+    """
+    Get or create a foreign key reference for the provided parameters,
+    assuming the parent of this object is a ClusterableModel.
+    """
+
+    def get_object(self):
+        try:
+            return super().get_object()
+        except self.model.DoesNotExist:
+            return self.model(**self.lookup())
 # pylint:enable=abstract-method
 
 
