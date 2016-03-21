@@ -136,7 +136,7 @@ class GetOrCreateForeignObject(GetForeignObject):
 # pylint:enable=abstract-method
 
 
-class Page(JSONSerializable, yaml.YAMLObject):
+class Page(FieldStorable, JSONSerializable, yaml.YAMLObject):
     """
     A reference to a page
     """
@@ -144,16 +144,23 @@ class Page(JSONSerializable, yaml.YAMLObject):
     yaml_tag = '!page'
     yaml_loader = yaml.SafeLoader
 
-    def __to_json__(self):
+    def get_object(self):
+        """
+        Retrieve the page object.
+        """
         # pylint:disable=no-member
         url = PurePosixPath(self.url)
 
         if not url.is_absolute():
             raise ValueError("URL must be absolute")
 
-        page = WagtailPage.objects.only('id').get(url_path=str(url) + '/')
+        return WagtailPage.objects.only('id').get(url_path=str(url) + '/')
 
-        return page.id
+    def __to_value__(self):
+        return self.get_object()
+
+    def __to_json__(self):
+        return self.get_object().id
 
 
 class Image(FieldStorable, JSONSerializable, yaml.YAMLObject):
