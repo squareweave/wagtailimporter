@@ -10,12 +10,42 @@ import yaml
 from unidecode import unidecode
 
 from django.core.files import File
-from django.db import transaction
+from django.db import models, transaction
 from wagtail.wagtailcore.models import Page as WagtailPage
 from wagtail.wagtailcore.fields import StreamField
 from wagtail.wagtailimages.models import Image as WagtailImage
 
 LOGGER = logging.getLogger(__name__)
+
+
+class YAMLSerializableMetaclass(yaml.YAMLObjectMetaclass):
+    """
+    Yaml registration metaclass
+    """
+    def __init__(cls, name, bases, kwargs):
+        super().__init__(name, bases, kwargs)
+        model = kwargs.get('model')
+
+        if model is not None:
+            cls.yaml_dumper.add_representer(model, cls.__to_yaml__)
+
+
+class YAMLSerializable(yaml.YAMLObject, metaclass=YAMLSerializableMetaclass):
+    """
+    Base Yaml object
+    """
+
+    yaml_loader = yaml.SafeLoader
+
+    @classmethod
+    def __to_yaml__(cls, dumper, data):
+        obj = cls.__from_value__(data)
+        return obj.to_yaml(dumper, obj)
+
+    @classmethod
+    def __from_value__(cls, obj):
+        """Convert a real ORM object into a YAMLSerializable."""
+        raise NotImplementedError()
 
 
 class JSONSerializable(object):
@@ -66,12 +96,10 @@ class JSONEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-class GetForeignObject(FieldStorable, yaml.YAMLObject):
+class GetForeignObject(FieldStorable, YAMLSerializable):
     """
     Get a foreign key reference for the provided parameters
     """
-
-    yaml_loader = yaml.SafeLoader
 
     @property
     def model(self):
@@ -123,6 +151,32 @@ class GetForeignObject(FieldStorable, yaml.YAMLObject):
 
         return obj
 
+    @classmethod
+    def __from_value__(cls, obj):
+        output = cls()
+
+        for field in obj._meta.get_fields():
+            if field.auto_created:
+                continue
+
+            value = getattr(obj, field.name)
+
+            if value is None or value == field.default or value == '':
+                continue
+
+            elif isinstance(field, models.FileField):
+                value = value.name  # FIXME: broken
+
+            elif isinstance(value, models.Manager):
+                continue
+
+            elif isinstance(value, models.Model):
+                continue
+
+            setattr(output, field.name, value)
+
+        return output
+
 
 # pylint:disable=abstract-method
 class GetOrCreateForeignObject(GetForeignObject):
@@ -155,7 +209,6 @@ class Page(FieldStorable, JSONSerializable, yaml.YAMLObject):
     """
 
     yaml_tag = '!page'
-    yaml_loader = yaml.SafeLoader
 
     def get_object(self):
         """
@@ -176,13 +229,13 @@ class Page(FieldStorable, JSONSerializable, yaml.YAMLObject):
         return self.get_object().id
 
 
-class Image(FieldStorable, JSONSerializable, yaml.YAMLObject):
+class Image(FieldStorable, JSONSerializable, YAMLSerializable):
     """
     A reference to an image
     """
 
+    model = WagtailImage
     yaml_tag = '!image'
-    yaml_loader = yaml.SafeLoader
 
     file = None  # expected parameter
 
@@ -207,11 +260,15 @@ class Image(FieldStorable, JSONSerializable, yaml.YAMLObject):
         return os.path.join(folder_name, filename)
 
     @transaction.atomic
-    def __to_value__(self):
-        try:
-            obj = WagtailImage.objects.get(file=self.db_filename)
+    def get_object(self):
+        """
+        Retrieve the image object.
+        """
 
-        except WagtailImage.DoesNotExist:
+        try:
+            obj = self.model.objects.only('id').get(file=self.db_filename)
+
+        except self.model.DoesNotExist:
             print("Creating file %s..." % self.db_filename)
             with open('images/%s' % self.file, 'rb') as file_:
                 file_ = File(file_)
@@ -226,9 +283,38 @@ class Image(FieldStorable, JSONSerializable, yaml.YAMLObject):
             elif hasattr(self, field.name):
                 setattr(obj, field.name, getattr(self, field.name))
 
-        obj.save()
+        obj.save()  # pylint:disable=no-member
 
         return obj
 
+    def __to_value__(self):
+        return self.get_object()
+
     def __to_json__(self):
-        return self.__to_value__().id
+        return self.get_object().id
+
+    @classmethod
+    def __from_value__(cls, obj):
+        output = cls()
+
+        for field in obj._meta.get_fields():
+            if field.auto_created:
+                continue
+
+            value = getattr(obj, field.name)
+
+            if value is None or value == field.default or value == '':
+                continue
+
+            elif isinstance(field, models.FileField):
+                value = value.name  # FIXME: broken
+
+            elif isinstance(value, models.Manager):
+                continue
+
+            elif isinstance(value, models.Model):
+                continue
+
+            setattr(output, field.name, value)
+
+        return output
