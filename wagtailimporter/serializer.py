@@ -11,7 +11,7 @@ from unidecode import unidecode
 
 from django.core.files import File
 from django.db import transaction
-from wagtail.wagtailcore.models import Page as WagtailPage
+from wagtail.wagtailcore.models import Page as WagtailPage, Site as WagtailSite
 from wagtail.wagtailcore.fields import StreamField
 from wagtail.wagtailimages.models import Image as WagtailImage
 
@@ -232,3 +232,20 @@ class Image(FieldStorable, JSONSerializable, yaml.YAMLObject):
 
     def __to_json__(self):
         return self.__to_value__().id
+
+
+class Site(GetOrCreateForeignObject):
+    """
+    A Wagtail site.
+
+    !site
+        hostname: localhost
+        site_name: My Site
+        root_page: !page
+            url: /my-site
+        is_default_site: true
+    """
+
+    yaml_tag = '!site'
+    model = WagtailSite
+    lookup_keys = ('hostname',)

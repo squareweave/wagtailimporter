@@ -85,6 +85,21 @@ Builtin reference types:
 
   Can also accept other `Image` related parameters such as `title`.
 
+* ``!site``
+
+  Lookup a `Site` by its `hostname`.
+
+  Can also create sites if you specify `root_page` (as a `!page`).
+
+  ::
+
+      !site
+          hostname: localhost
+          site_name: My Site
+          root_page: !page
+              url: /my-site
+          is_default_site: true
+
 You can also create your own for your models:
 
 ::
