@@ -18,6 +18,15 @@ from wagtail.wagtailcore.fields import StreamField
 from ... import serializer
 
 
+def normalise(url):
+    url = str(url)
+
+    if not url.endswith('/'):
+        url += '/'
+
+    return url
+
+
 class Command(BaseCommand):
     """
     Import pages into Wagtail.
@@ -103,14 +112,14 @@ class Command(BaseCommand):
             raise CommandError("Need `url' for page")
 
         try:
-            page = model.objects.get(url_path=str(url) + '/')
+            page = model.objects.get(url_path=normalise(url))
             self.import_data(page, data)
             page.save()
             self.stdout.write("Updating existing page %s" % url)
         except model.DoesNotExist:
             try:
                 # pylint:disable=no-member
-                parent = Page.objects.get(url_path=str(url.parent) + '/')
+                parent = Page.objects.get(url_path=normalise(url.parent))
             except Page.DoesNotExist:
                 raise CommandError("Parent of %s doesn't exist" % url)
 
