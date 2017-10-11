@@ -18,6 +18,15 @@ from wagtail.wagtailimages.models import Image as WagtailImage
 LOGGER = logging.getLogger(__name__)
 
 
+def normalise(url):
+    url = str(url)
+
+    if not url.endswith('/'):
+        url += '/'
+
+    return url
+
+
 class JSONSerializable(object):
     """Interface to objects which are serializable into JSON."""
 
@@ -130,8 +139,28 @@ class GetOrCreateForeignObject(GetForeignObject):
     Get or create a foreign key reference for the provided parameters
     """
 
+    def get_defaults(self):
+        """
+        Defaults to pass when creating an object.
+        """
+        defaults = {}
+
+        for field in self.model._meta.get_fields():
+            if hasattr(self, field.name):
+                value = getattr(self, field.name)
+
+                if isinstance(field, StreamField):
+                    value = json.dumps(value, cls=JSONEncoder)
+                else:
+                    value = FieldStorable.to_objects(value)
+
+                defaults[field.name] = value
+
+        return defaults
+
     def get_object(self):
-        obj, _ = self.model.objects.get_or_create(**self.lookup())
+        obj, _ = self.model.objects.get_or_create(**self.lookup(),
+                                                  defaults=self.get_defaults())
         return obj
 
 
@@ -167,7 +196,7 @@ class Page(FieldStorable, JSONSerializable, yaml.YAMLObject):
         if not url.is_absolute():
             raise ValueError("URL must be absolute")
 
-        return WagtailPage.objects.only('id').get(url_path=str(url) + '/')
+        return WagtailPage.objects.only('id').get(url_path=normalise(url))
 
     def __to_value__(self):
         return self.get_object()

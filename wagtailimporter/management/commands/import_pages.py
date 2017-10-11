@@ -16,15 +16,7 @@ from wagtail.wagtailcore.models import Page
 from wagtail.wagtailcore.fields import StreamField
 
 from ... import serializer
-
-
-def normalise(url):
-    url = str(url)
-
-    if not url.endswith('/'):
-        url += '/'
-
-    return url
+from ...serializer import normalise
 
 
 class Command(BaseCommand):
