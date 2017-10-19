@@ -11,6 +11,7 @@ from unidecode import unidecode
 
 from django.core.files import File
 from django.db import transaction
+from wagtail.contrib.settings.registry import registry
 from wagtail.wagtailcore.models import Page as WagtailPage, Site as WagtailSite
 from wagtail.wagtailcore.fields import StreamField
 from wagtail.wagtailimages.models import Image as WagtailImage
@@ -278,3 +279,13 @@ class Site(GetOrCreateForeignObject):
     yaml_tag = '!site'
     model = WagtailSite
     lookup_keys = ('hostname',)
+
+
+# Make a getter for each registered Wagtail setting, lookup using its app.model
+# lowercase dotted model name.
+for SomeSetting in registry:
+    type(SomeSetting.__name__, (GetOrCreateForeignObject,), {
+        'yaml_tag': '!{}'.format(SomeSetting._meta.label_lower),
+        'model': SomeSetting,
+        'lookup_keys': ('site',)
+    })

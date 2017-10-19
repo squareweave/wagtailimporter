@@ -100,6 +100,15 @@ Builtin reference types:
               url: /my-site
           is_default_site: true
 
+* All registered Wagtail settings, using ``!app.mysetting``
+
+  ::
+
+      !app.socialmedialinks:
+          site: !site
+              hostname: localhost
+          facebook_url: https://www.facebook.com/squareweave/
+
 You can also create your own for your models:
 
 ::
