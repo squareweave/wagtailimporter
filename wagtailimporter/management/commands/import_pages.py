@@ -59,7 +59,7 @@ class Command(BaseCommand):
         """Import a snippet (which is a GetForeignObject)."""
 
         obj = data.__to_value__()
-        print("Importing snippet %s" % obj)
+        print("Importing %s %s" % (obj._meta.verbose_name, obj))
         obj.save()
 
     @transaction.atomic
