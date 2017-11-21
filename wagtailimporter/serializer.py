@@ -118,9 +118,15 @@ class GetForeignObject(FieldStorable, yaml.YAMLObject):
 
     def __to_value__(self):
         obj = self.get_object()
+        lookup = self.lookup()
 
         # update the object with any remaining keys
         for field in self.model._meta.get_fields():
+
+            # Skip fields used to find the instance
+            if field.name in lookup:
+                continue
+
             if hasattr(self, field.name):
                 value = getattr(self, field.name)
 
@@ -206,15 +212,19 @@ class Page(FieldStorable, JSONSerializable, yaml.YAMLObject):
         return self.get_object().id
 
 
-class Image(FieldStorable, JSONSerializable, yaml.YAMLObject):
+class Image(JSONSerializable, GetOrCreateForeignObject):
     """
     A reference to an image
     """
 
     yaml_tag = '!image'
     yaml_loader = yaml.SafeLoader
+    model = WagtailImage
 
     file = None  # expected parameter
+
+    def lookup(self):
+        return {'file': self.db_filename}
 
     @property
     def db_filename(self):
@@ -226,39 +236,33 @@ class Image(FieldStorable, JSONSerializable, yaml.YAMLObject):
         """
 
         folder_name = 'original_images'
-        filename = ('images/%s' % self.file).replace('/', '')
+        filename = 'images/%s' % self.file.replace('/', '-')
         filename = "".join((i if ord(i) < 128 else '_')
                            for i in unidecode(filename))
 
-        while len(os.path.join(folder_name, filename)) >= 95:
-            prefix, dot, extension = filename.rpartition('.')
-            filename = prefix[:-1] + dot + extension
+        max_length = 95
+        path = os.path.join(folder_name, filename)
+        if len(path) > max_length:
+            prefix, extension = os.path.splitext(filename)
+            path = prefix[:max_length - len(path)] + extension
 
-        return os.path.join(folder_name, filename)
+        return path
 
-    @transaction.atomic
-    def __to_value__(self):
+    def get_object(self):
         try:
-            obj = WagtailImage.objects.get(file=self.db_filename)
-
-        except WagtailImage.DoesNotExist:
+            return self.model.objects.get(**self.lookup())
+        except self.model.DoesNotExist:
             print("Creating file %s..." % self.db_filename)
-            with open('images/%s' % self.file, 'rb') as file_:
-                file_ = File(file_)
-                obj = WagtailImage(file=file_)
-                # Need to save while the file is open
-                obj.save()  # pylint:disable=no-member
 
-        # copy the fields
-        for field in obj._meta.get_fields():
-            if field.name == 'file':
-                continue
-            elif hasattr(self, field.name):
-                setattr(obj, field.name, getattr(self, field.name))
+            storage = self.model._meta.get_field('file').storage
+            filename = self.db_filename
+            if not storage.exists(filename):
+                with open('images/%s' % self.file, 'rb') as source:
+                    filename = storage.save(filename, source)
 
-        obj.save()
-
-        return obj
+            image = self.model(file=filename)
+            image.save()  # pylint:disable=no-member
+            return image
 
     def __to_json__(self):
         return self.__to_value__().id
