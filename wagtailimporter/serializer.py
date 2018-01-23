@@ -15,6 +15,7 @@ from wagtail.contrib.settings.registry import registry
 from wagtail.wagtailcore.models import Page as WagtailPage, Site as WagtailSite
 from wagtail.wagtailcore.fields import StreamField
 from wagtail.wagtailimages.models import Image as WagtailImage
+from wagtail.wagtaildocs.models import Document as WagtailDocument
 
 LOGGER = logging.getLogger(__name__)
 
@@ -263,6 +264,49 @@ class Image(JSONSerializable, GetOrCreateForeignObject):
             image = self.model(file=filename)
             image.save()  # pylint:disable=no-member
             return image
+
+    def __to_json__(self):
+        return self.__to_value__().id
+
+
+class Document(JSONSerializable, GetOrCreateForeignObject):
+    """
+    A reference to a document
+    """
+
+    yaml_tag = '!document'
+    yaml_loader = yaml.SafeLoader
+    model = WagtailDocument
+
+    # expected parameters
+    file = None
+    title = ''
+
+    def lookup(self):
+        return {'file': self.db_filename}
+
+    @property
+    def db_filename(self):
+        folder_name = 'documents'
+        # wagtail code doesn't appear to manipulate document filenames like it does for images!
+        path = os.path.join(folder_name, self.file)
+        return path
+
+    def get_object(self):
+        try:
+            return self.model.objects.get(**self.lookup())
+        except self.model.DoesNotExist:
+            print("Creating file %s..." % self.db_filename)
+
+            storage = self.model._meta.get_field('file').storage
+            filename = self.db_filename
+            if not storage.exists(filename):
+                with open('documents/%s' % self.file, 'rb') as source:
+                    filename = storage.save(filename, source)
+
+            doc = self.model(file=filename, title=self.title)
+            doc.save()  # pylint:disable=no-member
+            return doc
 
     def __to_json__(self):
         return self.__to_value__().id
