@@ -85,6 +85,12 @@ Builtin reference types:
 
   Can also accept other `Image` related parameters such as `title`.
 
+* ``!document``
+
+  Takes a `file` parameter to a document (e.g. a PDF) - not to be confused with a yaml 'document'.
+
+  Also accepts a `title` paramater (recommended for a better admin experience)
+
 * ``!site``
 
   Lookup a `Site` by its `hostname`.
