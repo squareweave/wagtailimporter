@@ -1,26 +1,25 @@
 """
 Objects for YAML serializer/deserializer
 """
-import os
 import json
 import logging
+import os
 from pathlib import PurePosixPath
 
 import yaml
 from unidecode import unidecode
-
-from django.core.files import File
-from django.db import transaction
 from wagtail.contrib.settings.registry import registry
-from wagtail.wagtailcore.models import Page as WagtailPage, Site as WagtailSite
-from wagtail.wagtailcore.fields import StreamField
-from wagtail.wagtailimages.models import Image as WagtailImage
-from wagtail.wagtaildocs.models import Document as WagtailDocument
+from wagtail.core.fields import StreamField
+from wagtail.core.models import Page as WagtailPage
+from wagtail.core.models import Site as WagtailSite
+from wagtail.documents.models import Document as WagtailDocument
+from wagtail.images.models import Image as WagtailImage
 
 LOGGER = logging.getLogger(__name__)
 
 
 def normalise(url):
+    """Normalize URL paths by appending a trailing slash."""
     url = str(url)
 
     if not url.endswith('/'):
@@ -70,11 +69,11 @@ class JSONEncoder(json.JSONEncoder):
     Extension of the JSON encoder that knows how to encode the YAML objects
     """
 
-    def default(self, obj):  # pylint:disable=method-hidden
-        if isinstance(obj, JSONSerializable):
-            return obj.__to_json__()
+    def default(self, o):  # pylint:disable=method-hidden
+        if isinstance(o, JSONSerializable):
+            return o.__to_json__()
 
-        return super().default(obj)
+        return super().default(o)
 
 
 class GetForeignObject(FieldStorable, yaml.YAMLObject):
@@ -253,7 +252,7 @@ class Image(JSONSerializable, GetOrCreateForeignObject):
         try:
             return self.model.objects.get(**self.lookup())
         except self.model.DoesNotExist:
-            print("Creating file %s..." % self.db_filename)
+            LOGGER.info("Creating file %s...", self.db_filename)
 
             storage = self.model._meta.get_field('file').storage
             filename = self.db_filename
@@ -287,8 +286,10 @@ class Document(JSONSerializable, GetOrCreateForeignObject):
 
     @property
     def db_filename(self):
+        """Generate a filename to store in the database for this Document."""
         folder_name = 'documents'
-        # wagtail code doesn't appear to manipulate document filenames like it does for images!
+        # wagtail code doesn't appear to manipulate document filenames like it
+        # does for images!
         path = os.path.join(folder_name, self.file)
         return path
 
@@ -296,7 +297,7 @@ class Document(JSONSerializable, GetOrCreateForeignObject):
         try:
             return self.model.objects.get(**self.lookup())
         except self.model.DoesNotExist:
-            print("Creating file %s..." % self.db_filename)
+            LOGGER.info("Creating file %s...", self.db_filename)
 
             storage = self.model._meta.get_field('file').storage
             filename = self.db_filename

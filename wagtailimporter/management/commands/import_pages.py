@@ -1,19 +1,17 @@
 """
 Import pages into Wagtail
 """
-import os
 import json
-from pathlib import PurePosixPath, Path
+import os
+from pathlib import Path, PurePosixPath
 
 import yaml
-
-from django.db import transaction
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
-from django.contrib.contenttypes.models import ContentType
-
-from wagtail.wagtailcore.models import Page
-from wagtail.wagtailcore.fields import StreamField
+from django.db import transaction
+from wagtail.core.fields import StreamField
+from wagtail.core.models import Page
 
 from ... import serializer
 from ...serializer import normalise
@@ -59,7 +57,7 @@ class Command(BaseCommand):
         """Import a snippet (which is a GetForeignObject)."""
 
         obj = data.__to_value__()
-        print("Importing %s %s" % (obj._meta.verbose_name, obj))
+        self.stdout.write("Importing %s %s" % (obj._meta.verbose_name, obj))
         obj.save()
 
     @transaction.atomic

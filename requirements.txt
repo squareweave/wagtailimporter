@@ -1,1 +1,2 @@
-wagtail >= 1.3
+wagtail >= 2.0.0
+pyyaml
