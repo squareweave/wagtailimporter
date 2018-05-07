@@ -3,3 +3,5 @@
 /wagtailimporter.egg-info/
 
 __pycache__
+.tox/
+.eggs/
