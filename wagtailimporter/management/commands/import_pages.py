@@ -1,10 +1,8 @@
 """
 Import pages into Wagtail
 """
-import argparse
 import json
 import os
-from contextlib import closing
 from pathlib import Path, PurePosixPath
 
 import yaml
@@ -59,7 +57,7 @@ class Command(BaseCommand):
         """Import a snippet (which is a GetForeignObject)."""
 
         obj = data.__to_value__()
-        print("Importing %s %s" % (obj._meta.verbose_name, obj))
+        self.stdout.write("Importing %s %s" % (obj._meta.verbose_name, obj))
         obj.save()
 
     @transaction.atomic
