@@ -1,8 +1,22 @@
 language: python
-python:
- - '3.5'
+cache: pip
 
-script: echo "Done"
+# Matrix of build options
+matrix:
+  include:
+    - python: 3.5
+    - python: 3.6
+    - python: 3.6
+      env: TOXENV=pylint,flake8
+
+install:
+  - pip install --upgrade pip wheel tox setuptools
+
+script:
+  - |
+    : ${TOXENV:=$( tox --listenvs | grep "py${TRAVIS_PYTHON_VERSION/./}" | tr "\n" "," )} ;
+    tox -e "${TOXENV}"
+
 deploy:
   provider: pypi
   user: danni
@@ -13,3 +27,5 @@ deploy:
     all_branches: true
     python: 3.5
     condition: '"$TRAVIS_TAG" = "$(python setup.py --version)"'
+
+# vim: sw=2
