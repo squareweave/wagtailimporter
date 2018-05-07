@@ -1,21 +1,19 @@
 """
 Objects for YAML serializer/deserializer
 """
-import os
 import json
 import logging
+import os
 from pathlib import PurePosixPath
 
 import yaml
 from unidecode import unidecode
-
-from django.core.files import File
-from django.db import transaction
 from wagtail.contrib.settings.registry import registry
-from wagtail.wagtailcore.models import Page as WagtailPage, Site as WagtailSite
-from wagtail.wagtailcore.fields import StreamField
-from wagtail.wagtailimages.models import Image as WagtailImage
-from wagtail.wagtaildocs.models import Document as WagtailDocument
+from wagtail.core.fields import StreamField
+from wagtail.core.models import Page as WagtailPage
+from wagtail.core.models import Site as WagtailSite
+from wagtail.documents.models import Document as WagtailDocument
+from wagtail.images.models import Image as WagtailImage
 
 LOGGER = logging.getLogger(__name__)
 

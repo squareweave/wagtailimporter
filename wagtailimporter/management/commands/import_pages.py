@@ -1,19 +1,19 @@
 """
 Import pages into Wagtail
 """
-import os
+import argparse
 import json
-from pathlib import PurePosixPath, Path
+import os
+from contextlib import closing
+from pathlib import Path, PurePosixPath
 
 import yaml
-
-from django.db import transaction
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
-from django.contrib.contenttypes.models import ContentType
-
-from wagtail.wagtailcore.models import Page
-from wagtail.wagtailcore.fields import StreamField
+from django.db import transaction
+from wagtail.core.fields import StreamField
+from wagtail.core.models import Page
 
 from ... import serializer
 from ...serializer import normalise
