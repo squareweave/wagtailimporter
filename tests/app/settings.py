@@ -1,5 +1,7 @@
 """Settings for wagtailimporter tests"""
 import os
+from wagtail import VERSION
+
 
 INSTALLED_APPS = [
     'wagtailimporter',
@@ -7,8 +9,8 @@ INSTALLED_APPS = [
 
     'taggit',
     'modelcluster',
-
-    'wagtail.core',
+    
+    'wagtail.core' if VERSION < (5,0) else 'wagtail',
     'wagtail.admin',
     'wagtail.users',
     'wagtail.sites',
@@ -17,12 +19,14 @@ INSTALLED_APPS = [
     'wagtail.documents',
     'wagtail.images',
     'wagtail.contrib.routable_page',
+    
 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.staticfiles',
+    'django.contrib.messages'
 ]
 
 ALLOWED_HOSTS = ['localhost']
@@ -45,6 +49,9 @@ DEBUG = True
 USE_TZ = True
 TIME_ZONE = 'Australia/Hobart'
 
+
+    
+
 MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -52,8 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
-    'wagtail.core.middleware.SiteMiddleware',
+    'wagtail.middleware.CurrentSiteMiddleware' if VERSION < (5,0) else 'django.contrib.sites.middleware.CurrentSiteMiddleware',
 ]
 
 TEMPLATES = [
