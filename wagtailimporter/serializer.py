@@ -9,9 +9,15 @@ from pathlib import PurePosixPath
 import yaml
 from unidecode import unidecode
 from wagtail.contrib.settings.registry import registry
-from wagtail.fields import StreamField
-from wagtail.models import Page as WagtailPage
-from wagtail.models import Site as WagtailSite
+from wagtail import VERSION
+if VERSION < (5,0):
+    from wagtail.core.fields import StreamField
+    from wagtail.core.models import Page as WagtailPage
+    from wagtail.core.models import Site as WagtailSite
+else:
+    from wagtail.fields import StreamField
+    from wagtail.models import Page as WagtailPage
+    from wagtail.models import Site as WagtailSite
 from wagtail.documents.models import Document as WagtailDocument
 from wagtail.images.models import Image as WagtailImage
 

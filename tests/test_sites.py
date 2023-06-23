@@ -4,7 +4,11 @@ Test importing Wagtail pages.
 import textwrap
 
 from django.test import TestCase
-from wagtail.models import Site
+from wagtail import VERSION
+if VERSION < (5,0):
+    from wagtail.core.models import Site
+else:
+    from wagtail.models import Site
 
 from .app.models import BasicPage
 from .base import ImporterTestCaseMixin

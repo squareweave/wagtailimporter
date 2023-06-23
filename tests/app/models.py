@@ -2,8 +2,13 @@
 Models for testing wagtailimporter.
 """
 from django.db import models
-from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
-from wagtail.models import Page
+from wagtail import VERSION
+if VERSION < (5,0):
+    from wagtail.contrib.settings.models import BaseSetting, register_setting
+    from wagtail.core.models import Page
+else:
+    from wagtail.models import Page
+    from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
 
 
 class BasicPage(Page):

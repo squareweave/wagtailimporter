@@ -10,8 +10,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from wagtail.fields import StreamField
-from wagtail.models import Page
+from wagtail import VERSION
+if VERSION < (5,0):    
+    from wagtail.core.fields import StreamField
+    from wagtail.core.models import Page
+else:
+    from wagtail.fields import StreamField
+    from wagtail.models import Page
 
 from ... import serializer
 from ...serializer import normalise
