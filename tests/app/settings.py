@@ -8,7 +8,7 @@ INSTALLED_APPS = [
     'taggit',
     'modelcluster',
 
-    'wagtail.core',
+    'wagtail',
     'wagtail.admin',
     'wagtail.users',
     'wagtail.sites',
@@ -17,12 +17,14 @@ INSTALLED_APPS = [
     'wagtail.documents',
     'wagtail.images',
     'wagtail.contrib.routable_page',
+    
 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.staticfiles',
+    'django.contrib.messages'
 ]
 
 ALLOWED_HOSTS = ['localhost']
@@ -53,7 +55,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    'wagtail.core.middleware.SiteMiddleware',
+    'django.contrib.sites.middleware.CurrentSiteMiddleware',
 ]
 
 TEMPLATES = [

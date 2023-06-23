@@ -4,7 +4,7 @@ Test importing Wagtail pages.
 import textwrap
 
 from django.test import TestCase
-from wagtail.core.models import Site
+from wagtail.models import Site
 from wagtail.images.models import Image
 
 from .app.models import BasicSetting
