@@ -1,9 +1,9 @@
 """URL config."""
-from django.urls import include, re_path
+from django.urls import include, path
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail import urls as wagtail_urls
 
 urlpatterns = [
-    re_path(r'^admin/', include(wagtailadmin_urls)),
-    re_path(r'', include(wagtail_urls)),
+    path(r'admin/', include(wagtailadmin_urls)),
+    path(r'', include(wagtail_urls)),
 ]
