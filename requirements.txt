@@ -1,2 +1,2 @@
-wagtail >= 2.0.0
+wagtail >= 4.0.0
 pyyaml

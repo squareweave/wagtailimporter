@@ -17,7 +17,7 @@ INSTALLED_APPS = [
     'wagtail.documents',
     'wagtail.images',
     'wagtail.contrib.routable_page',
-    
+
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,6 +41,7 @@ DATABASES = {
 }
 
 WAGTAIL_SITE_NAME = 'Wagtail Importer'
+WAGTAILADMIN_BASE_URL = "https://example.com/"
 
 DEBUG = True
 
@@ -79,3 +80,5 @@ TEMPLATES = [
 
 STATIC_ROOT = os.path.join(os.path.dirname(__file__), 'static')
 STATIC_URL = '/static/'
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
