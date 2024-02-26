@@ -7,11 +7,11 @@ import os
 from pathlib import PurePosixPath
 
 import yaml
-from unidecode import unidecode
 from wagtail.contrib.settings.registry import registry
-from wagtail.core.fields import StreamField
-from wagtail.core.models import Page as WagtailPage
-from wagtail.core.models import Site as WagtailSite
+from wagtail.coreutils import string_to_ascii
+from wagtail.fields import StreamField
+from wagtail.models import Page as WagtailPage
+from wagtail.models import Site as WagtailSite
 from wagtail.documents.models import Document as WagtailDocument
 from wagtail.images.models import Image as WagtailImage
 
@@ -28,7 +28,7 @@ def normalise(url):
     return url
 
 
-class JSONSerializable(object):
+class JSONSerializable:
     """Interface to objects which are serializable into JSON."""
 
     def __to_json__(self):
@@ -36,7 +36,7 @@ class JSONSerializable(object):
         raise NotImplementedError()
 
 
-class FieldStorable(object):
+class FieldStorable:
     """Interface to objects which can be stored in Django model fields."""
 
     def __to_value__(self):
@@ -234,19 +234,20 @@ class Image(JSONSerializable, GetOrCreateForeignObject):
         This code is taken from Wagtail. We can't call into the Wagtail code
         because it will create unique filenames.
         """
+        folder_name = "original_images"
+        filename = f"images/{self.file.replace('/', '-')}"
+        filename = "".join(
+            (i if ord(i) < 128 else "_") for i in string_to_ascii(filename)
+        )
 
-        folder_name = 'original_images'
-        filename = 'images/%s' % self.file.replace('/', '-')
-        filename = "".join((i if ord(i) < 128 else '_')
-                           for i in unidecode(filename))
-
-        max_length = 95
-        path = os.path.join(folder_name, filename)
-        if len(path) > max_length:
+        full_path = os.path.join(folder_name, filename)
+        if len(full_path) >= 95:
+            chars_to_trim = len(full_path) - 94
             prefix, extension = os.path.splitext(filename)
-            path = prefix[:max_length - len(path)] + extension
+            filename = prefix[:-chars_to_trim] + extension
+            full_path = os.path.join(folder_name, filename)
 
-        return path
+        return full_path
 
     def get_object(self):
         try:
@@ -257,7 +258,7 @@ class Image(JSONSerializable, GetOrCreateForeignObject):
             storage = self.model._meta.get_field('file').storage
             filename = self.db_filename
             if not storage.exists(filename):
-                with open('images/%s' % self.file, 'rb') as source:
+                with open(f"images/{self.file}", 'rb') as source:
                     filename = storage.save(filename, source)
 
             image = self.model(file=filename)
@@ -302,7 +303,7 @@ class Document(JSONSerializable, GetOrCreateForeignObject):
             storage = self.model._meta.get_field('file').storage
             filename = self.db_filename
             if not storage.exists(filename):
-                with open('documents/%s' % self.file, 'rb') as source:
+                with open(f"documents/{self.file}", 'rb') as source:
                     filename = storage.save(filename, source)
 
             doc = self.model(file=filename, title=self.title)
@@ -334,7 +335,7 @@ class Site(GetOrCreateForeignObject):
 # lowercase dotted model name.
 for SomeSetting in registry:
     type(SomeSetting.__name__, (GetOrCreateForeignObject,), {
-        'yaml_tag': '!{}'.format(SomeSetting._meta.label_lower),
+        'yaml_tag': f'!{SomeSetting._meta.label_lower}',
         'model': SomeSetting,
         'lookup_keys': ('site',)
     })

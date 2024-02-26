@@ -2,8 +2,8 @@
 Models for testing wagtailimporter.
 """
 from django.db import models
-from wagtail.contrib.settings.models import BaseSetting, register_setting
-from wagtail.core.models import Page
+from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
+from wagtail.models import Page
 
 
 class BasicPage(Page):
@@ -22,7 +22,7 @@ class ForeignKeyPage(Page):
 
 
 @register_setting
-class BasicSetting(BaseSetting):
+class BasicSetting(BaseSiteSetting):
     """The simplest setting."""
     text = models.TextField(blank=True)
     cute_dog = models.ForeignKey(

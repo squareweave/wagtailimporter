@@ -11,7 +11,7 @@ from django.core.management import call_command
 from django.test import override_settings
 
 
-class ImporterTestCaseMixin(object):
+class ImporterTestCaseMixin:
     """
     TestCase mixin for testing the import_pages management command.
     """
@@ -26,8 +26,8 @@ class ImporterTestCaseMixin(object):
             temp.write(yaml)
             temp.seek(0)
 
-            kwargs.setdefault('stdout', open(os.devnull, 'w'))
-            kwargs.setdefault('stderr', open(os.devnull, 'w'))
+            kwargs.setdefault('stdout', open(os.devnull, 'w'))  # noqa: E501 pylint: disable=consider-using-with,unspecified-encoding
+            kwargs.setdefault('stderr', open(os.devnull, 'w'))  # noqa: E501 pylint: disable=consider-using-with,unspecified-encoding
             call_command('import_pages', temp.name, **kwargs)
 
     def get_import_dir(self):

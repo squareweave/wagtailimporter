@@ -8,7 +8,7 @@ INSTALLED_APPS = [
     'taggit',
     'modelcluster',
 
-    'wagtail.core',
+    'wagtail',
     'wagtail.admin',
     'wagtail.users',
     'wagtail.sites',
@@ -18,11 +18,13 @@ INSTALLED_APPS = [
     'wagtail.images',
     'wagtail.contrib.routable_page',
 
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.staticfiles',
+    'django.contrib.messages'
 ]
 
 ALLOWED_HOSTS = ['localhost']
@@ -39,6 +41,7 @@ DATABASES = {
 }
 
 WAGTAIL_SITE_NAME = 'Wagtail Importer'
+WAGTAILADMIN_BASE_URL = "https://example.com/"
 
 DEBUG = True
 
@@ -53,7 +56,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    'wagtail.core.middleware.SiteMiddleware',
+    'django.contrib.sites.middleware.CurrentSiteMiddleware',
 ]
 
 TEMPLATES = [
@@ -77,3 +80,5 @@ TEMPLATES = [
 
 STATIC_ROOT = os.path.join(os.path.dirname(__file__), 'static')
 STATIC_URL = '/static/'
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"

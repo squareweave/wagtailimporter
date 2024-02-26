@@ -10,8 +10,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from wagtail.core.fields import StreamField
-from wagtail.core.models import Page
+from wagtail.fields import StreamField
+from wagtail.models import Page
 
 from ... import serializer
 from ...serializer import normalise
@@ -28,9 +28,9 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         for filename in options['file']:
-            with open(filename) as file_:
+            with open(filename, encoding="utf-8") as file_:
                 docs = yaml.safe_load_all(file_)
-                self.stdout.write("Reading %s" % filename)
+                self.stdout.write(f"Reading {filename}")
 
                 cwd = Path.cwd()
                 try:
@@ -50,14 +50,14 @@ class Command(BaseCommand):
                 else:
                     self.import_page(doc)
             except CommandError as exc:
-                self.stderr.write("Error importing page: %s" % exc)
+                self.stderr.write(f"Error importing page: {exc}")
 
     @transaction.atomic
     def import_snippet(self, data):
         """Import a snippet (which is a GetForeignObject)."""
 
         obj = data.__to_value__()
-        self.stdout.write("Importing %s %s" % (obj._meta.verbose_name, obj))
+        self.stdout.write(f"Importing {obj._meta.verbose_name} {obj}")
         obj.save()
 
     @transaction.atomic
@@ -73,18 +73,18 @@ class Command(BaseCommand):
 
         try:
             type_ = data.pop('type')
-        except KeyError:
-            raise CommandError("Need `type' for page")
+        except KeyError as exc:
+            raise CommandError("Need `type' for page") from exc
 
         try:
             app_label, model = type_.split('.')
             return ContentType.objects.get(app_label=app_label,
                                            model=model)\
                 .model_class()
-        except (ValueError, AttributeError):
-            raise CommandError("`type' is of form `app.model'")
-        except ContentType.DoesNotExist:
-            raise CommandError("Unknown page type `%s'" % type_)
+        except (ValueError, AttributeError) as exc:
+            raise CommandError("`type' is of form `app.model'") from exc
+        except ContentType.DoesNotExist as exc:
+            raise CommandError(f"Unknown page type `{type_}'") from exc
 
     def find_page(self, model, data):
         """
@@ -96,27 +96,27 @@ class Command(BaseCommand):
         try:
             url = PurePosixPath(data.pop('url'))
             if not url.is_absolute():
-                raise CommandError("Path %s must be absolute" % url)
+                raise CommandError(f"Path {url} must be absolute")
 
-        except KeyError:
-            raise CommandError("Need `url' for page")
+        except KeyError as exc:
+            raise CommandError("Need `url' for page") from exc
 
         try:
             page = model.objects.get(url_path=normalise(url))
             self.import_data(page, data)
             page.save()
-            self.stdout.write("Updating existing page %s" % url)
+            self.stdout.write(f"Updating existing page {url}")
         except model.DoesNotExist:
             try:
                 # pylint:disable=no-member
                 parent = Page.objects.get(url_path=normalise(url.parent))
-            except Page.DoesNotExist:
-                raise CommandError("Parent of %s doesn't exist" % url)
+            except Page.DoesNotExist as exc:
+                raise CommandError(f"Parent of {url} doesn't exist") from exc
 
             page = model(slug=url.name)
             self.import_data(page, data)
             parent.add_child(instance=page)
-            self.stdout.write("Creating new page %s" % url)
+            self.stdout.write(f"Creating new page {url}")
 
         return page
 
